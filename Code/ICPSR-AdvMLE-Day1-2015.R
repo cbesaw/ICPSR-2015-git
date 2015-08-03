@@ -1,5 +1,5 @@
 #########################################################
-# ICPSR "Advanced Maximum Likelihood" 2014 - Survival
+# ICPSR "Advanced Maximum Likelihood" 2015 - Survival
 #
 # Day One materials.
 #
@@ -10,7 +10,7 @@ library(RCurl)
 library(foreign)
 library(survival)
 
-KABLURL<-"https://raw.githubusercontent.com/PrisonRodeo/ICPSR-git/master/Data/KABL.csv"
+KABLURL<-"https://raw.githubusercontent.com/PrisonRodeo/ICPSR-2015-git/master/Data/KABL.csv"
 temp<-getURL(KABLURL)
 KABL<-read.csv(textConnection(temp))
 
@@ -28,16 +28,31 @@ dev.off()
 
 # Estimates of H(t):
 
-NAalen<-cumsum(KABL.fit$n.event / KABL.fit$n.risk) 
-# Ht<- -log(KABL.fit$surv) # Alternative estimate
+KABL.FH<-survfit(KABL.S~1,type="fleming")
 
 pdf("KABLNA.pdf",6,5)
 par(mar=c(4,4,2,2))
-plot(NAalen~KABL.fit$time,t="l",lwd=3,xlab="Time (in months)",
-     ylab="Cumulative Hazard Estimate")
-points(KABL.fit$time[KABL.fit$n.censor>0],
-       NAalen[KABL.fit$n.censor>0],pch=4)
+plot(KABL.FH$time,-log(KABL.FH$surv),t="l",lwd=3,lty=1,
+     xlab="Time (in months)",ylab="Cumulative Hazard",
+     ylim=c(0,2.5))
+lines(KABL.FH$time,-log(KABL.FH$upper),t="l",lwd=2,lty=2)
+lines(KABL.FH$time,-log(KABL.FH$lower),t="l",lwd=2,lty=2)
+points(KABL.FH$time[KABL.FH$n.censor>0],
+       -log(KABL.FH$surv[KABL.FH$n.censor>0]),pch=19)
 dev.off()
+
+# Alternatively, w/no CIs...:
+#
+# NAalen<-cumsum(KABL.fit$n.event / KABL.fit$n.risk) 
+# Ht<- -log(KABL.fit$surv) # Alternative estimate
+# 
+# pdf("KABLNA.pdf",6,5)
+# par(mar=c(4,4,2,2))
+# plot(NAalen~KABL.fit$time,t="l",lwd=3,xlab="Time (in months)",
+#      ylab="Cumulative Hazard Estimate")
+# points(KABL.fit$time[KABL.fit$n.censor>0],
+#        NAalen[KABL.fit$n.censor>0],pch=4)
+# dev.off()
 
 # Log-rank test:
 
